@@ -31,9 +31,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
 	testImplementation 'io.projectreactor:reactor-test'
 	annotationProcessor 'org.projectlombok:lombok'
+	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
+	testImplementation 'ch.qos.logback:logback-classic'
+
 }
 
 dependencyManagement {

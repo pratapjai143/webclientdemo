@@ -1,0 +1,8 @@
+2024-09-07 14:32:23 [main] INFO  a.c.r.b.BookmyshowWebclientApplication -
+                Starting BookmyshowWebclientApplication using Java 17.0.4.1 on 192-168-68-83.tpgi.com.au with PID 19817 (/Users/pratappadhy/Documents/Projects/SpringBoot/spring-web-client-demo/bookmyshow-webclient/build/classes/java/main started by pratappadhy in /Users/pratappadhy/Documents/Projects/SpringBoot/spring-web-client-demo)
+2024-09-07 14:32:23 [main] DEBUG a.c.r.b.BookmyshowWebclientApplication -
+                Running with Spring Boot v2.7.18, Spring v5.3.31
+2024-09-07 14:32:23 [main] INFO  a.c.r.b.BookmyshowWebclientApplication -
+                No active profile set, falling back to 1 default profile: "default"
+2024-09-07 14:32:24 [main] INFO  a.c.r.b.BookmyshowWebclientApplication -
+                Started BookmyshowWebclientApplication in 1.494 seconds (JVM running for 1.731)
