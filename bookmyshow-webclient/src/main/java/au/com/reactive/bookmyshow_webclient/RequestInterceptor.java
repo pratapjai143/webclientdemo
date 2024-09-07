@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
 @Slf4j
-@Component
+//@Component Not using this class
 public class RequestInterceptor implements HandlerInterceptor {
 
     @Autowired

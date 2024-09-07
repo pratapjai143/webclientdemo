@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 @Slf4j
-@Component
+//@Component Not using this class
 public class FilterConfig implements Filter {
     private final String CORRELATION_ID = "X-Correlation-Id";
 
