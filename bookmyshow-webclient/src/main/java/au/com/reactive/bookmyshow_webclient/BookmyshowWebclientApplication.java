@@ -6,24 +6,29 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.sleuth.TraceContext;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.context.Context;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.UUID;
 
 @SpringBootApplication
 @RestController
+
 @RequestMapping("/bookMyShow-client")
 public class BookmyshowWebclientApplication {
 
 	@Autowired
-	WebClient.Builder webClientBuilder;
+	RestTemplate restTemplate;
 
 	@Autowired
 	private Tracer tracer;
@@ -34,15 +39,8 @@ public class BookmyshowWebclientApplication {
 
 	Logger log = LoggerFactory.getLogger(BookmyshowWebclientApplication.class);
 
+	@Autowired
 	WebClient webClient;
-
-	@PostConstruct
-	public void init() {
-		webClient = webClientBuilder.baseUrl("http://localhost:9090/BookMyShow/Service")
-		//.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-		.filter(logRequest())
-		.filter(logResponse()).build();
-	}
 
 	@PostMapping("/bookNow")
 	public Mono<String> BookNow(@RequestBody BookRequest request) {
@@ -54,9 +52,36 @@ public class BookmyshowWebclientApplication {
 		Flux<BookRequest> bookRequestFlux = Flux.fromIterable(request.getBookings());
 
 		return bookRequestFlux.flatMap(booking ->
-				webClient.post().uri("/bookingShow").syncBody(booking).retrieve().bodyToMono(String.class)
+				getStringMono(booking)
 		).collectList();
-		//return webClient.post().uri("/bookingShow").syncBody(request).retrieve().bodyToMono(String.class);
+	}
+
+	@PostMapping("/bookShowInBulkRest")
+	public Mono<List<String>> BookShowInBulkRest(@RequestBody BookRequestWrapper request) {
+		for (BookRequest booking : request.getBookings()) {
+			MDC.put("correlation-id", UUID.randomUUID().toString());
+			String response = restTemplate.postForObject("http://localhost:9090/BookMyShow/Service/bookingShow", booking, String.class);
+			log.info("Response returned from provider service {}", response);
+			MDC.remove("correlation-id");
+		}
+		return null;
+	}
+
+	private Mono<String> getStringMono(BookRequest booking) {
+
+		return webClient.post().uri("/bookingShow").syncBody(booking).retrieve()
+				.bodyToMono(String.class);
+
+		/*MDC.put("correlation-id", UUID.randomUUID().toString());
+		Mono<String> bookingMono =  webClient.post().uri("/bookingShow").syncBody(booking).retrieve()
+				.bodyToMono(String.class);
+
+		MDC.remove("correlation-id");
+
+		return bookingMono;*/
+		/*var span = tracer.spanBuilder().setNoParent().start();
+		return webClient.post().uri("/bookingShow").syncBody(booking).retrieve().bodyToMono(String.class)
+				.contextWrite(Context.of(TraceContext.class, span.context()));*/
 	}
 
 	@GetMapping("/trackBookings")
@@ -83,22 +108,6 @@ public class BookmyshowWebclientApplication {
 	public Mono<BookRequest> updateBooking(@PathVariable int bookingId, @RequestBody BookRequest request) {
 		return webClient.put().uri("/updateBooking/" + bookingId).syncBody(request).retrieve()
 				.bodyToMono(BookRequest.class);
-	}
-
-	private ExchangeFilterFunction logRequest() {
-		return ExchangeFilterFunction.ofRequestProcessor(clinetRequest -> {
-			log.info("Request {} {}", clinetRequest.method(), clinetRequest.url());
-			MDC.put("x-user-id", clinetRequest.headers().get("X-B3-SpanId").stream().findFirst().get());
-			clinetRequest.headers().forEach((name, values) -> values.forEach(value -> log.info("{}={}", name, value)));
-			return Mono.just(clinetRequest);
-		});
-	}
-
-	private ExchangeFilterFunction logResponse() {
-		return ExchangeFilterFunction.ofResponseProcessor(clinetResponse -> {
-			log.info("Response status code {} ", clinetResponse.statusCode());
-			return Mono.just(clinetResponse);
-		});
 	}
 
 
